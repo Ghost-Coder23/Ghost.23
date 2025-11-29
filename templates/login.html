@@ -1,0 +1,161 @@
+<html>
+    <head>
+      <style>
+        /* Full-screen body with animated circuit board background */
+        body, html {
+          height: 100%;
+          width: 100%;
+          margin: 0;
+          font-family: Arial, sans-serif;
+          background: #00000041;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: #fff;
+        }
+
+        /* Animated circuit board background using CSS */
+        @keyframes pulse {
+          0% {opacity: 0.7;}
+          50% {opacity: 1;}
+          100% {opacity: 0.7;}
+        }
+
+        .background {
+          position: fixed;
+          top: 0; left:0; right:0; bottom:0;
+          z-index: -1;
+          background-image: repeating-linear-gradient(
+            0deg,
+            #267550,
+            #662828 2px,
+            #2e2e2e 2px,
+            #53848d 4px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            #1f1f1f,
+            #1f1f1f 2px,
+            #2e2e2e 2px,
+            #2e2e2e 4px
+          );
+          animation: pulse 2s infinite ease-in-out;
+        }
+
+        /* Container for login */
+        .login-container {
+          perspective: 800px;
+          width: 500px;
+          height: 250px;
+          position: relative;
+        }
+
+        /* Cube */
+        .cube {
+          width: 600px;
+          height: 400px;
+          margin: auto;
+          position: relative;
+          transform-style: preserve-3d;
+          animation: rotateCube 10s linear infinite;
+        }
+
+        @keyframes rotateCube {
+          from {
+            transform: rotateX(0deg) rotateY(0deg);
+          }
+          to {
+            transform: rotateX(360deg) rotateY(360deg);
+          }
+        }
+
+        /* Cube faces */
+        .face {
+          position: absolute;
+          width: 200px;
+          height: 200px;
+          background: rgba(16, 24, 32, 0.9);
+          border: 2px solid #0ff;
+          box-sizing: border-box;
+          line-height: 200px;
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          color: #0ff;
+          user-select: none;
+        }
+
+        .front  { transform: translateZ(100px); }
+        .back   { transform: rotateY(180deg) translateZ(100px); }
+        .right  { transform: rotateY(90deg) translateZ(100px); }
+        .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .top    { transform: rotateX(90deg) translateZ(100px); }
+        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        /* Login form overlay */
+        .login-form {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 280px;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.568);
+          border: 2px solid #0ff;
+          border-radius: 8px;
+          box-shadow: 0 0 20px #0ff;
+        }
+
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+          width: 100%;
+          padding: 8px;
+          margin: 10px 0;
+          border: 1px solid #0ff;
+          border-radius: 4px;
+          background: #101820;
+          color: #0ff;
+          font-size: 14px;
+        }
+
+        .login-form button {
+          width: 100%;
+          padding: 10px;
+          background: #0ff;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          cursor: pointer;
+          color: #101820;
+          font-size: 16px;
+        }
+
+        .login-error {
+          color: rgb(240, 19, 19);
+          margin: 5px 0;
+          font-size: 14px;
+          text-align: center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="background"></div>
+      <div class="login-container">
+        <div class="cube">
+          <div class="face front">Ghost.23</div>
+          <div class="face back">Welcome</div>
+          <div class="face right">Mini -Os</div>
+          <div class="face left">Insights</div>
+          <div class="face top">Monitor</div>
+          <div class="face bottom">Goals</div>
+        </div>
+         <form method="POST" class="login-form" action="{{ url_for('login') }}">
+          <input type="text" name="username" placeholder="Username" required autofocus />
+          <input type="password" name="password" placeholder="Password" required />
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    
+    </body>
+    </html>

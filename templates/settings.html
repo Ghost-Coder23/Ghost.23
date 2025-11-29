@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Settings - Mini Web OS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/kali_theme.css') }}" />
+</head>
+<body>
+  <div class="desktop">
+    <h2>⚙️ Settings</h2>
+    <form method="POST">
+      <div class="settings-section">
+        <h3>🎨 Appearance</h3>
+        <div class="setting-item">
+          <label for="theme">Theme:</label>
+          <select name="theme" id="theme">
+            <option value="kali">Kali Linux (Dark)</option>
+            <option value="light">Light Theme</option>
+            <option value="matrix">Matrix</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <label for="background">Desktop Background:</label>
+          <select name="background" id="background">
+            <option value="default">Default Pattern</option>
+            <option value="solid">Solid Color</option>
+            <option value="gradient">Gradient</option>
+            <option value="particles">Animated Particles</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <label for="clock_format">Clock Format:</label>
+          <select name="clock_format" id="clock_format">
+            <option value="12">12 Hour</option>
+            <option value="24">24 Hour</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>📁 File Manager</h3>
+        <div class="setting-item">
+          <label for="default_view">Default View:</label>
+          <select name="default_view" id="default_view">
+            <option value="list" {% if settings.default_view == 'list' %}selected{% endif %}>List View</option>
+            <option value="grid" {% if settings.default_view == 'grid' %}selected{% endif %}>Grid View</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <label for="show_hidden">Show Hidden Files:</label>
+          <input type="checkbox" name="show_hidden" id="show_hidden" value="true" {% if settings.show_hidden %}checked{% endif %}>
+        </div>
+
+        <div class="setting-item">
+          <label for="upload_limit">Upload Size Limit (MB):</label>
+          <input type="number" name="upload_limit" id="upload_limit" min="1" max="100" value="{{ settings.upload_limit }}">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>💻 Applications</h3>
+        <div class="setting-item">
+          <label for="auto_save">Auto-save Notes/Text Editor:</label>
+          <input type="checkbox" name="auto_save" id="auto_save" value="true" {% if settings.auto_save %}checked{% endif %}>
+        </div>
+
+        <div class="setting-item">
+          <label for="sound_effects">Sound Effects:</label>
+          <input type="checkbox" name="sound_effects" id="sound_effects" value="true" {% if settings.sound_effects %}checked{% endif %}>
+        </div>
+
+        <div class="setting-item">
+          <label for="animation_speed">Animation Speed:</label>
+          <select name="animation_speed" id="animation_speed">
+            <option value="slow" {% if settings.animation_speed == 'slow' %}selected{% endif %}>Slow</option>
+            <option value="normal" {% if settings.animation_speed == 'normal' %}selected{% endif %}>Normal</option>
+            <option value="fast" {% if settings.animation_speed == 'fast' %}selected{% endif %}>Fast</option>
+            <option value="off" {% if settings.animation_speed == 'off' %}selected{% endif %}>Off</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>🔒 Security & Privacy</h3>
+        <div class="setting-item">
+          <label for="session_timeout">Session Timeout (minutes):</label>
+          <input type="number" name="session_timeout" id="session_timeout" min="5" max="480" value="{{ settings.session_timeout }}">
+        </div>
+
+        <div class="setting-item">
+          <label for="remember_login">Remember Login:</label>
+          <input type="checkbox" name="remember_login" id="remember_login" value="true" {% if settings.remember_login %}checked{% endif %}>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>🌐 System</h3>
+        <div class="setting-item">
+          <label for="language">Language:</label>
+          <select name="language" id="language">
+            <option value="en" {% if settings.language == 'en' %}selected{% endif %}>English</option>
+            <option value="es" {% if settings.language == 'es' %}selected{% endif %}>Español</option>
+            <option value="fr" {% if settings.language == 'fr' %}selected{% endif %}>Français</option>
+            <option value="de" {% if settings.language == 'de' %}selected{% endif %}>Deutsch</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <label for="timezone">Timezone:</label>
+          <select name="timezone" id="timezone">
+            <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+            <option value="America/New_York" {% if settings.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+            <option value="America/Los_Angeles" {% if settings.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+            <option value="Europe/London" {% if settings.timezone == 'Europe/London' %}selected{% endif %}>London</option>
+            <option value="Asia/Tokyo" {% if settings.timezone == 'Asia/Tokyo' %}selected{% endif %}>Tokyo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button type="submit" class="save-btn">💾 Save Settings</button>
+        <button type="button" class="reset-btn" onclick="resetSettings()">🔄 Reset to Defaults</button>
+      </div>
+    </form>
+    <br/>
+    <a href="{{ url_for('main') }}">⬅️ Back to Desktop</a>
+  </div>
+
+  <script>
+    function resetSettings() {
+      if (confirm('Are you sure you want to reset all settings to defaults?')) {
+        // Reset form to default values
+        document.getElementById('theme').value = 'kali';
+        document.getElementById('background').value = 'default';
+        document.getElementById('clock_format').value = '24';
+        document.getElementById('default_view').value = 'list';
+        document.getElementById('show_hidden').checked = false;
+        document.getElementById('upload_limit').value = '10';
+        document.getElementById('auto_save').checked = true;
+        document.getElementById('sound_effects').checked = false;
+        document.getElementById('animation_speed').value = 'normal';
+        document.getElementById('session_timeout').value = '60';
+        document.getElementById('remember_login').checked = false;
+        document.getElementById('language').value = 'en';
+        document.getElementById('timezone').value = 'UTC';
+
+        // Submit the form
+        document.querySelector('form').submit();
+      }
+    }
+  </script>
+</body>
+</html>

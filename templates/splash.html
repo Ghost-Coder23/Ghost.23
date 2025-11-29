@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="5;url={{ url_for('login') }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booting Mini Web OS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
+</head>
+<body>
+  <div class="boot-container">
+    <h1>Ghost.23 OS</h1>
+    <div class="boot-animation">
+      <div class="led"></div>
+      <div class="led"></div>
+      <div class="led"></div>
+      <p>Booting...</p>
+    </div>
+  </div>
+</body>
+</html>

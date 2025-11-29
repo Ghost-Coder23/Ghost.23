@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Web OS Desktop</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/kali_theme.css') }}" />
+</head>
+  <body>
+
+    {% if current_dir and current_dir != 'desktop' %}
+    <div class="file-manager fullscreen">
+      <div class="file-manager-header">
+        <div class="header-left">
+          <span class="folder-icon">📁</span>
+          <h2>{{ current_dir|capitalize }}</h2>
+        </div>
+        <div class="header-right">
+          <button class="refresh-btn" onclick="location.reload()">🔄</button>
+          <button class="close-btn" onclick="window.location.href='{{ url_for('main', dir='desktop') }}'">×</button>
+        </div>
+      </div>
+      <nav class="breadcrumb">
+        <a href="{{ url_for('main', dir='root') }}">🏠 Root</a>
+        {% if current_dir != 'root' and current_dir != 'recents' %}
+          <span class="breadcrumb-separator">></span>
+          <a href="{{ url_for('main', dir=current_dir) }}">{{ current_dir|capitalize }}</a>
+        {% elif current_dir == 'recents' %}
+          <span class="breadcrumb-separator">></span>
+          <span>🕒 Recents</span>
+        {% endif %}
+      </nav>
+      <div class="file-manager-toolbar">
+        {% if current_dir != 'recents' %}
+        <form action="{{ url_for('main', dir=current_dir) }}" method="post" enctype="multipart/form-data" class="upload-form">
+          <input type="file" name="file" id="file-input" required>
+          <label for="file-input" class="upload-btn">📤 Upload</label>
+          <button type="submit" class="upload-submit">Upload</button>
+        </form>
+        {% endif %}
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="list">📋 List</button>
+          <button class="view-btn" data-view="grid">⊞ Grid</button>
+        </div>
+      </div>
+      <div class="file-container">
+        <table class="file-listing">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in files %}
+              <tr class="file-row" data-type="{{ file.type }}">
+                {% if file.type == 'dir' %}
+                  <td><span class="file-icon">📁</span><a href="{{ url_for('main', dir=file.name) }}" class="file-link">{{ file.name }}</a></td>
+                  <td><span class="type-badge directory">Directory</span></td>
+                  <td class="actions">
+                    <button class="action-btn open-btn" onclick="window.location.href='{{ url_for('main', dir=file.name) }}'">📂 Open</button>
+                  </td>
+                {% else %}
+                  <td><span class="file-icon">📄</span><span class="file-name">{{ file.name }}</span></td>
+                  <td><span class="type-badge file">File</span></td>
+                  <td class="actions">
+                    <button class="action-btn open-btn" onclick="openFile('{{ url_for('uploaded_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}', '{{ file.name }}')">👁️ Open</button>
+                    <a href="{{ url_for('uploaded_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}" class="action-btn download-btn" download>⬇️ Download</a>
+                    <form action="{{ url_for('delete_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}" method="post" style="display:inline;">
+                      <button type="submit" class="action-btn delete-btn" onclick="return confirm('Delete {{ file.name }}?')">🗑️ Delete</button>
+                    </form>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="file-grid" style="display: none;">
+          {% for file in files %}
+            <div class="grid-item" data-type="{{ file.type }}">
+              {% if file.type == 'dir' %}
+                <div class="grid-icon directory-icon" onclick="window.location.href='{{ url_for('main', dir=file.name) }}'">📁</div>
+                <div class="grid-name"><a href="{{ url_for('main', dir=file.name) }}">{{ file.name }}</a></div>
+              {% else %}
+                <div class="grid-icon file-icon">📄</div>
+                <div class="grid-name">{{ file.name }}</div>
+                <div class="grid-actions">
+                  <button onclick="openFile('{{ url_for('uploaded_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}', '{{ file.name }}')">👁️</button>
+                  <a href="{{ url_for('uploaded_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}" download>⬇️</a>
+                  <form action="{{ url_for('delete_file', dir=current_dir if current_dir != 'root' else 'root', filename=file.name) }}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Delete {{ file.name }}?')">🗑️</button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if current_dir == 'desktop' %}
+<div class="desktop">
+      <div class="taskbar" id="taskbar"></div>
+      <div class="dock">
+        <div class="icon" tabindex="0" title="File Manager">📁</div>
+        <div class="icon" tabindex="0" title="Notes">📝</div>
+        <div class="icon" tabindex="0" title="Text Editor">📄</div>
+        <div class="icon" tabindex="0" title="Calculator">🧮</div>
+        <div class="icon" tabindex="0" title="Terminal">💻</div>
+        <div class="icon" tabindex="0" title="Settings">⚙️</div>
+      </div>
+      <div class="top-panel" id="top-panel">
+        <div id="system-info">Ghost.23</div>
+        <div class="clock" id="clock">--:--:--</div>
+      </div>
+      <div class="desktop-icons">
+        <div class="icon" tabindex="0" title="File Manager">📁<br>File Manager</div>
+        <div class="icon" tabindex="0" title="Notes">📝<br>Notes</div>
+        <div class="icon" tabindex="0" title="Text Editor">📄<br>Text Editor</div>
+        <div class="icon" tabindex="0" title="Calculator">🧮<br>Calculator</div>
+        <div class="icon" tabindex="0" title="Terminal">💻<br>Terminal</div>
+        <div class="icon" tabindex="0" title="Settings">⚙️<br>Settings</div>
+      </div>
+    {% endif %}
+      <script>
+        // File viewer functionality
+        function openFile(url, filename) {
+          const extension = filename.split('.').pop().toLowerCase();
+          const viewer = document.createElement('div');
+          viewer.className = 'file-viewer';
+          viewer.innerHTML = `
+            <div class="viewer-header">
+              <span class="viewer-title">${filename}</span>
+              <button class="viewer-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+            <div class="viewer-content"></div>
+          `;
+          document.body.appendChild(viewer);
+
+          const content = viewer.querySelector('.viewer-content');
+
+          if (['mp4', 'webm', 'ogg'].includes(extension)) {
+            // Video player
+            content.innerHTML = `
+              <video controls style="max-width: 100%; max-height: 80vh;">
+                <source src="${url}" type="video/${extension}">
+                Your browser does not support the video tag.
+              </video>
+            `;
+          } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
+            // Image viewer
+            content.innerHTML = `<img src="${url}" style="max-width: 100%; max-height: 80vh; display: block; margin: 0 auto;">`;
+          } else if (extension === 'pdf') {
+            // PDF viewer
+            content.innerHTML = `
+              <iframe src="${url}" style="width: 100%; height: 80vh; border: none;"></iframe>
+            `;
+          } else if (['txt', 'md', 'html', 'css', 'js', 'py', 'java', 'cpp', 'c', 'php', 'xml', 'json'].includes(extension)) {
+            // Text/Document viewer
+            fetch(url)
+              .then(response => response.text())
+              .then(text => {
+                content.innerHTML = `<pre style="background: rgba(29, 21, 46, 0.9); color: #58a6ff; padding: 20px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap; font-family: 'Courier New', monospace;">${text}</pre>`;
+              })
+              .catch(() => {
+                content.innerHTML = '<p style="color: #ff6b6b;">Error loading file content.</p>';
+              });
+          } else {
+            // Download for unsupported files
+            window.open(url, '_blank');
+            viewer.remove();
+            return;
+          }
+
+          // Make viewer draggable
+          makeDraggable(viewer);
+        }
+
+        function makeDraggable(element) {
+          const header = element.querySelector('.viewer-header') || element.querySelector('.window-header');
+          if (!header) return;
+          let isDragging = false;
+          let startX, startY, initialX, initialY;
+
+          header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = element.offsetLeft;
+            initialY = element.offsetTop;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+          });
+
+          function drag(e) {
+            if (isDragging) {
+              const dx = e.clientX - startX;
+              const dy = e.clientY - startY;
+              element.style.left = initialX + dx + 'px';
+              element.style.top = initialY + dy + 'px';
+            }
+          }
+
+          function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+          // Clock update
+          function updateTime() {
+            const clock = document.getElementById('clock');
+            if (clock) {
+              const now = new Date();
+              clock.textContent = now.toLocaleTimeString();
+            }
+          }
+          setInterval(updateTime, 1000);
+          updateTime();
+
+          // Context menu
+          let contextMenu = null;
+
+          function createContextMenu(x, y, items) {
+            if (contextMenu) contextMenu.remove();
+            contextMenu = document.createElement('div');
+            contextMenu.className = 'context-menu';
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+
+            items.forEach(item => {
+              const menuItem = document.createElement('div');
+              menuItem.className = 'context-menu-item';
+              menuItem.textContent = item.label;
+              menuItem.addEventListener('click', item.action);
+              contextMenu.appendChild(menuItem);
+            });
+
+            document.body.appendChild(contextMenu);
+
+            // Remove menu on click outside
+            document.addEventListener('click', () => {
+              if (contextMenu) contextMenu.remove();
+              contextMenu = null;
+            }, { once: true });
+          }
+
+          // Add right-click to desktop icons
+          document.querySelectorAll('.desktop-icons .icon').forEach(icon => {
+            icon.addEventListener('contextmenu', (e) => {
+              e.preventDefault();
+              const title = icon.title;
+              const items = [
+                { label: 'Open', action: () => iconActions[title]() },
+                { label: 'Properties', action: () => alert(`Properties for ${title}`) }
+              ];
+              createContextMenu(e.clientX, e.clientY, items);
+            });
+          });
+
+          // Add right-click to file manager files
+          document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.file-listing tr')) {
+              e.preventDefault();
+              const row = e.target.closest('tr');
+              const filename = row.cells[0].textContent;
+              const isDir = row.cells[1].textContent === 'Directory';
+              const currentDir = '{{ current_dir }}';
+              const items = [
+                { label: 'Open', action: () => {
+                  if (isDir) {
+                    window.location.href = '/main?dir=' + filename;
+                  } else {
+                    alert(`Open ${filename}`);
+                  }
+                }},
+                { label: 'Download', action: () => {
+                  if (!isDir) {
+                    window.location.href = '/uploads/' + currentDir + '/' + filename;
+                  }
+                }},
+                { label: 'Delete', action: () => {
+                  if (confirm(`Delete ${filename}?`)) {
+                    fetch('/delete/' + currentDir + '/' + filename, { method: 'POST' }).then(() => location.reload());
+                  }
+                }}
+              ];
+              createContextMenu(e.clientX, e.clientY, items);
+            }
+          });
+
+          // Window management
+          let windowId = 0;
+          const windows = [];
+
+          function createWindow(title, content) {
+            const win = document.createElement('div');
+            win.className = 'window';
+            win.id = `window-${windowId++}`;
+            win.innerHTML = `
+              <div class="window-header">
+                <span class="window-title">${title}</span>
+                <div class="window-controls">
+                  <button class="minimize-btn">_</button>
+                  <button class="maximize-btn">□</button>
+                  <button class="close-btn">×</button>
+                </div>
+              </div>
+              <div class="window-content">${content}</div>
+            `;
+            document.body.appendChild(win);
+
+            // Make window draggable
+            makeDraggable(win);
+
+            // Window controls
+            win.querySelector('.close-btn').addEventListener('click', () => win.remove());
+            win.querySelector('.minimize-btn').addEventListener('click', () => {
+              win.style.display = 'none';
+            });
+            win.querySelector('.maximize-btn').addEventListener('click', () => {
+              if (win.classList.contains('maximized')) {
+                win.classList.remove('maximized');
+              } else {
+                win.classList.add('maximized');
+              }
+            });
+
+            windows.push(win);
+            return win;
+          }
+
+          function makeDraggable(element) {
+            const header = element.querySelector('.window-header');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            header.addEventListener('mousedown', (e) => {
+              isDragging = true;
+              startX = e.clientX;
+              startY = e.clientY;
+              initialX = element.offsetLeft;
+              initialY = element.offsetTop;
+              document.addEventListener('mousemove', drag);
+              document.addEventListener('mouseup', stopDrag);
+            });
+
+            function drag(e) {
+              if (isDragging) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                element.style.left = initialX + dx + 'px';
+                element.style.top = initialY + dy + 'px';
+              }
+            }
+
+            function stopDrag() {
+              isDragging = false;
+              document.removeEventListener('mousemove', drag);
+              document.removeEventListener('mouseup', stopDrag);
+            }
+          }
+
+          // Icon click replaced with navigation or window opening
+          const iconActions = {
+            'File Manager': () => window.location.href = '{{ url_for("main", dir="root") }}',
+            'Notes': () => {
+              const win = createWindow('Notes', '<textarea id="notes-textarea" style="width:100%; height:250px; background: rgba(29, 21, 46, 0.9); color: #58a6ff; border: 1px solid #58a6ff;"></textarea><br><button id="save-notes">Save</button> <button id="load-notes">Load</button>');
+              const textarea = win.querySelector('#notes-textarea');
+              const saveBtn = win.querySelector('#save-notes');
+              const loadBtn = win.querySelector('#load-notes');
+              saveBtn.addEventListener('click', () => {
+                localStorage.setItem('notes', textarea.value);
+                alert('Notes saved!');
+              });
+              loadBtn.addEventListener('click', () => {
+                textarea.value = localStorage.getItem('notes') || '';
+                alert('Notes loaded!');
+              });
+              textarea.value = localStorage.getItem('notes') || '';
+            },
+            'Text Editor': () => {
+              const win = createWindow('Text Editor', '<textarea id="editor-textarea" style="width:100%; height:350px; background: rgba(29, 21, 46, 0.9); color: #58a6ff; border: 1px solid #58a6ff; font-family: monospace;"></textarea><br><button id="save-editor">Save</button> <button id="load-editor">Load</button>');
+              const textarea = win.querySelector('#editor-textarea');
+              const saveBtn = win.querySelector('#save-editor');
+              const loadBtn = win.querySelector('#load-editor');
+              saveBtn.addEventListener('click', () => {
+                localStorage.setItem('editor', textarea.value);
+                alert('Text saved!');
+              });
+              loadBtn.addEventListener('click', () => {
+                textarea.value = localStorage.getItem('editor') || '';
+                alert('Text loaded!');
+              });
+              textarea.value = localStorage.getItem('editor') || '';
+            },
+            'Calculator': () => {
+              const win = createWindow('Calculator', `
+                <div id="calc-display" style="background: rgba(29, 21, 46, 0.9); color: #58a6ff; border: 1px solid #58a6ff; padding: 10px; margin-bottom: 10px; text-align: right; font-size: 24px;">0</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;">
+                  <button class="calc-btn">7</button><button class="calc-btn">8</button><button class="calc-btn">9</button><button class="calc-btn">+</button>
+                  <button class="calc-btn">4</button><button class="calc-btn">5</button><button class="calc-btn">6</button><button class="calc-btn">-</button>
+                  <button class="calc-btn">1</button><button class="calc-btn">2</button><button class="calc-btn">3</button><button class="calc-btn">*</button>
+                  <button class="calc-btn">0</button><button class="calc-btn">.</button><button class="calc-btn">=</button><button class="calc-btn">/</button>
+                  <button class="calc-btn" style="grid-column: span 4;">C</button>
+                </div>
+              `);
+              const display = win.querySelector('#calc-display');
+              win.querySelectorAll('.calc-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                  const value = btn.textContent;
+                  if (value === 'C') {
+                    display.textContent = '0';
+                  } else if (value === '=') {
+                    try {
+                      display.textContent = eval(display.textContent);
+                    } catch {
+                      display.textContent = 'Error';
+                    }
+                  } else {
+                    if (display.textContent === '0') {
+                      display.textContent = value;
+                    } else {
+                      display.textContent += value;
+                    }
+                  }
+                });
+              });
+            },
+            'Terminal': () => {
+              const win = createWindow('Terminal', `
+                <div id="terminal-output" style="background: rgba(29, 21, 46, 0.9); color: #58a6ff; border: 1px solid #58a6ff; padding: 10px; height: 300px; overflow-y: auto; font-family: monospace;"></div>
+                <input id="terminal-input" type="text" style="width: 100%; background: rgba(29, 21, 46, 0.9); color: #58a6ff; border: 1px solid #58a6ff; padding: 5px;" placeholder="Enter command...">
+              `);
+              const output = win.querySelector('#terminal-output');
+              const input = win.querySelector('#terminal-input');
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                  const command = input.value.trim();
+                  output.innerHTML += `<div>> ${command}</div>`;
+                  const args = command.split(' ');
+                  const cmd = args[0];
+                  if (cmd === 'ls') {
+                    output.innerHTML += '<div>documents downloads pictures music videos trash</div>';
+                  } else if (cmd === 'pwd') {
+                    output.innerHTML += '<div>/home/user</div>';
+                  } else if (cmd === 'clear') {
+                    output.innerHTML = '';
+                  } else if (cmd === 'whoami') {
+                    output.innerHTML += '<div>user</div>';
+                  } else if (cmd === 'date') {
+                    output.innerHTML += `<div>${new Date().toString()}</div>`;
+                  } else if (cmd === 'echo') {
+                    output.innerHTML += `<div>${args.slice(1).join(' ')}</div>`;
+                  } else if (cmd === 'help') {
+                    output.innerHTML += '<div>Available commands: ls, pwd, clear, whoami, date, echo, uname, uptime, df, free, ps, kill, mkdir, touch, rm, cat, grep, history, cd, head, tail, wc, sort, find, wget, ping, ifconfig, top, help</div>';
+                  } else if (cmd === 'uname') {
+                    output.innerHTML += '<div>Linux MiniWebOS 1.0.0</div>';
+                  } else if (cmd === 'uptime') {
+                    const uptime = Math.floor((Date.now() - performance.timeOrigin) / 1000);
+                    output.innerHTML += `<div>up ${Math.floor(uptime / 3600)}:${Math.floor((uptime % 3600) / 60)}:${uptime % 60}</div>`;
+                  } else if (cmd === 'df') {
+                    output.innerHTML += '<div>Filesystem     1K-blocks  Used Available Use% Mounted on</div><div>tmpfs              1024     512      512  50% /</div>';
+                  } else if (cmd === 'free') {
+                    output.innerHTML += '<div>              total        used        free      shared  buff/cache   available</div><div>Mem:          1024         512         512           0           0         512</div>';
+                  } else if (cmd === 'ps') {
+                    output.innerHTML += '<div>PID TTY          TIME CMD</div><div>1 ?        00:00:00 init</div><div>2 ?        00:00:00 bash</div>';
+                  } else if (cmd === 'kill') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Killed process ${args[1]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>kill: usage: kill pid</div>';
+                    }
+                  } else if (cmd === 'mkdir') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>mkdir: created directory '${args[1]}'</div>`;
+                    } else {
+                      output.innerHTML += '<div>mkdir: missing operand</div>';
+                    }
+                  } else if (cmd === 'touch') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>touch: created file '${args[1]}'</div>`;
+                    } else {
+                      output.innerHTML += '<div>touch: missing file operand</div>';
+                    }
+                  } else if (cmd === 'rm') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>rm: removed '${args[1]}'</div>`;
+                    } else {
+                      output.innerHTML += '<div>rm: missing operand</div>';
+                    }
+                  } else if (cmd === 'cat') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>This is the content of ${args[1]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>cat: missing file operand</div>';
+                    }
+                  } else if (cmd === 'grep') {
+                    if (args.length >= 3) {
+                      output.innerHTML += `<div>grep: found '${args[1]}' in ${args[2]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>grep: usage: grep pattern file</div>';
+                    }
+                  } else if (cmd === 'history') {
+                    output.innerHTML += '<div>1 ls</div><div>2 pwd</div><div>3 help</div>';
+                  } else if (cmd === 'cd') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Changed directory to ${args[1]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>cd: missing directory</div>';
+                    }
+                  } else if (cmd === 'head') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Head of ${args[1]}:</div><div>Line 1</div><div>Line 2</div><div>Line 3</div>`;
+                    } else {
+                      output.innerHTML += '<div>head: missing file operand</div>';
+                    }
+                  } else if (cmd === 'tail') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Tail of ${args[1]}:</div><div>Line 8</div><div>Line 9</div><div>Line 10</div>`;
+                    } else {
+                      output.innerHTML += '<div>tail: missing file operand</div>';
+                    }
+                  } else if (cmd === 'wc') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>10 50 300 ${args[1]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>wc: missing file operand</div>';
+                    }
+                  } else if (cmd === 'sort') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Sorted content of ${args[1]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>sort: missing file operand</div>';
+                    }
+                  } else if (cmd === 'find') {
+                    if (args.length >= 3) {
+                      output.innerHTML += `<div>./${args[2]}</div>`;
+                    } else {
+                      output.innerHTML += '<div>find: usage: find path -name pattern</div>';
+                    }
+                  } else if (cmd === 'wget') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>Downloading ${args[1]}...</div><div>100% [==========================] 1.2M 1.2MB/s</div>`;
+                    } else {
+                      output.innerHTML += '<div>wget: missing URL</div>';
+                    }
+                  } else if (cmd === 'ping') {
+                    if (args[1]) {
+                      output.innerHTML += `<div>PING ${args[1]} (192.168.1.1) 56(84) bytes of data.</div><div>64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.123 ms</div>`;
+                    } else {
+                      output.innerHTML += '<div>ping: usage: ping hostname</div>';
+                    }
+                  } else if (cmd === 'ifconfig') {
+                    output.innerHTML += '<div>eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500</div><div>        inet 192.168.1.100  netmask 255.255.255.0  broadcast 192.168.1.255</div>';
+                  } else if (cmd === 'top') {
+                    output.innerHTML += '<div>top - 12:34:56 up 1:23,  1 user,  load average: 0.00, 0.01, 0.05</div><div>Tasks:  56 total,   1 running,  55 sleeping,   0 stopped,   0 zombie</div><div>%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st</div>';
+                  } else {
+                    output.innerHTML += '<div>Command not found. Type "help" for available commands.</div>';
+                  }
+                  input.value = '';
+                  output.scrollTop = output.scrollHeight;
+                }
+              });
+            },
+            'Settings': () => window.location.href = '{{ url_for("settings") }}'
+          };
+
+          const icons = document.querySelectorAll('.icon');
+          icons.forEach(icon => {
+            icon.style.cursor = 'pointer';
+            icon.addEventListener('click', () => {
+              const action = iconActions[icon.title];
+              if (action) {
+                action();
+              } else {
+                alert(`The app "${icon.title}" is not implemented yet.`);
+              }
+            });
+          });
+
+
+
+          // File manager view toggle
+          const viewBtns = document.querySelectorAll('.view-btn');
+          const fileListing = document.querySelector('.file-listing');
+          const fileGrid = document.querySelector('.file-grid');
+
+          viewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+              const view = btn.dataset.view;
+              viewBtns.forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+
+              if (view === 'list') {
+                fileListing.style.display = 'table';
+                fileGrid.style.display = 'none';
+              } else {
+                fileListing.style.display = 'none';
+                fileGrid.style.display = 'grid';
+              }
+            });
+          });
+        });
+      </script>
+    </div>
+  </body>
+</html>
