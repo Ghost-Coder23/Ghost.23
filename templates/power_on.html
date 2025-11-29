@@ -11,3 +11,41 @@
       padding: 0;
       height: 100vh;
       background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Courier New', monospace;
+      color: #58a6ff;
+    }
+    .power-button {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #58a6ff 0%, #1a1a2e 70%);
+      border: 3px solid #58a6ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.5);
+    }
+    .power-button:hover {
+      box-shadow: 0 0 40px rgba(88, 166, 255, 0.8);
+      transform: scale(1.1);
+    }
+    .power-button:active {
+      transform: scale(0.95);
+    }
+    .power-icon {
+      font-size: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="power-button" onclick="window.location.href='{{ url_for('splash') }}'">
+    <div class="power-icon">⏻</div>
+  </div>
+</body>
+</html>

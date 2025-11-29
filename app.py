@@ -16,6 +16,11 @@ users = {
 }
 
 @app.route('/')
+def power_on():
+    # Render power on page
+    return render_template('power_on.html')
+
+@app.route('/splash')
 def splash():
     # Render splash page that redirects to login after delay
     return render_template('splash.html')
