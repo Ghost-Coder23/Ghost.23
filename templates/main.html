@@ -39,8 +39,8 @@
         </form>
         {% endif %}
         <div class="view-toggle">
-          <button class="view-btn active" data-view="list">📋 List</button>
-          <button class="view-btn" data-view="grid">⊞ Grid</button>
+          <button class="view-btn" data-view="list">📋 List</button>
+          <button class="view-btn active" data-view="grid">⊞ Grid</button>
         </div>
       </div>
       <div class="file-container">
@@ -588,6 +588,25 @@
           const viewBtns = document.querySelectorAll('.view-btn');
           const fileListing = document.querySelector('.file-listing');
           const fileGrid = document.querySelector('.file-grid');
+
+          // Set default view based on screen size
+          function setDefaultView() {
+            const isMobile = window.innerWidth <= 768;
+            const defaultView = isMobile ? 'grid' : 'list';
+            viewBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-view="${defaultView}"]`).classList.add('active');
+
+            if (defaultView === 'list') {
+              fileListing.style.display = 'table';
+              fileGrid.style.display = 'none';
+            } else {
+              fileListing.style.display = 'none';
+              fileGrid.style.display = 'grid';
+            }
+          }
+
+          setDefaultView();
+          window.addEventListener('resize', setDefaultView);
 
           viewBtns.forEach(btn => {
             btn.addEventListener('click', () => {
